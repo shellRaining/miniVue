@@ -1,12 +1,18 @@
 type Dep = Set<ReactiveEffect>;
+type EffectOpts = {
+  scheduler?: Function;
+};
+type EffectRunner = Function;
 
 let activeEffect: ReactiveEffect | null;
 const targetMap = new Map<object, Map<PropertyKey, Dep>>();
 
 class ReactiveEffect {
   private _fn: Function;
-  constructor(fn: Function) {
+  public scheduler: Function | undefined;
+  constructor(fn: Function, scheduler?: Function) {
     this._fn = fn;
+    this.scheduler = scheduler;
   }
 
   run() {
@@ -58,7 +64,7 @@ export function track(target: object, key: PropertyKey): void {
 
 function triggerEffects(dep: Dep) {
   for (const effect of dep) {
-    effect.run();
+    effect.scheduler ? effect.scheduler() : effect.run();
   }
 }
 
@@ -73,8 +79,8 @@ export function trigger(target: object, key: PropertyKey) {
 }
 
 // TODO: what is Typescript Function type
-export function effect(fn: Function) {
-  const effect = new ReactiveEffect(fn);
+export function effect(fn: Function, opts?: EffectOpts): EffectRunner {
+  const effect = new ReactiveEffect(fn, opts?.scheduler);
   effect.run();
-  return effect;
+  return effect.run.bind(effect);
 }
