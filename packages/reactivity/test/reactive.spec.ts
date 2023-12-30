@@ -1,4 +1,4 @@
-import { reactive } from "../src/reactive";
+import { reactive, readonly } from "../src/reactive";
 import { effect } from "../src/effect";
 
 describe("reactive", () => {
@@ -23,5 +23,14 @@ describe("reactive", () => {
     expect(nextAge).toBe(11);
     user.age++;
     expect(nextAge).toBe(12);
+  });
+
+  it("should have readonly", () => {
+    const user = readonly({
+      age: 10,
+    });
+
+    user.age++;
+    expect(user.age).toBe(10);
   });
 });

@@ -67,4 +67,17 @@ describe("reactive", () => {
     expect(fn).toHaveBeenCalledTimes(2);
     expect(deepProxy.a.b).toBe(2);
   });
+
+  it("should work in mult key", () => {
+    const fn = jest.fn(() => {
+      multProxy.a + multProxy.b;
+    });
+    effect(fn);
+
+    expect(fn).toHaveBeenCalledTimes(1);
+    multProxy.a++;
+    expect(fn).toHaveBeenCalledTimes(2);
+    multProxy.b++;
+    expect(fn).toHaveBeenCalledTimes(3);
+  });
 });
