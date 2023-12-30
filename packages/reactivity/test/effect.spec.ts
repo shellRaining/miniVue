@@ -56,7 +56,7 @@ describe("reactive", () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it.skip("should have deep reactivity", () => {
+  it("should have deep reactivity", () => {
     const fn = jest.fn(() => {
       deepProxy.a.b;
     });

@@ -1,9 +1,16 @@
 import { track, trigger } from "./effect";
+import { isObject } from "../../shared/src/general";
 
 const reactiveHandler = {
   get(target: object, key: PropertyKey) {
+    const res = target[key];
+
+    if (isObject(res)) {
+      // TODO: every time create a new Proxy will cost time?
+      return reactive(res);
+    }
     track(target, key);
-    return target[key];
+    return res;
   },
   set(target: object, key: PropertyKey, value: any) {
     target[key] = value;
