@@ -1,4 +1,4 @@
-import { effect } from "../src/effect";
+import { effect, stop } from "../src/effect";
 import { reactive } from "../src/reactive";
 
 describe("reactive", () => {
@@ -25,5 +25,15 @@ describe("reactive", () => {
     expect(fn).toHaveBeenCalledTimes(1);
     runner();
     expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it("should not track when stop", () => {
+    const a = reactive({ a: 1 });
+    const fn = jest.fn(() => a.a);
+    const runner = effect(fn);
+    expect(fn).toHaveBeenCalledTimes(1);
+    stop(runner);
+    a.a++;
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 });

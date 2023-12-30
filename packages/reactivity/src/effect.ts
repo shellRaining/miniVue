@@ -2,7 +2,10 @@ type Dep = Set<ReactiveEffect>;
 type EffectOpts = {
   scheduler?: Function;
 };
-type EffectRunner = Function;
+type EffectRunner = {
+  (): void;
+  effect: ReactiveEffect;
+};
 
 let activeEffect: ReactiveEffect | null;
 const targetMap = new Map<object, Map<PropertyKey, Dep>>();
@@ -10,6 +13,7 @@ const targetMap = new Map<object, Map<PropertyKey, Dep>>();
 class ReactiveEffect {
   private _fn: Function;
   public scheduler: Function | undefined;
+  public deps: Dep[] = [];
   constructor(fn: Function, scheduler?: Function) {
     this._fn = fn;
     this.scheduler = scheduler;
@@ -19,6 +23,17 @@ class ReactiveEffect {
     activeEffect = this;
     this._fn();
     activeEffect = null;
+  }
+
+  stop() {
+    clearEffect(this);
+  }
+}
+
+function clearEffect(effect: ReactiveEffect) {
+  const deps = effect.deps;
+  for (const dep of deps) {
+    dep.delete(effect);
   }
 }
 
@@ -50,6 +65,7 @@ function trackEffects(dep: Dep) {
   if (!activeEffect) return;
   if (!dep.has(activeEffect)) {
     dep.add(activeEffect);
+    activeEffect.deps.push(dep);
   }
 }
 
@@ -82,5 +98,14 @@ export function trigger(target: object, key: PropertyKey) {
 export function effect(fn: Function, opts?: EffectOpts): EffectRunner {
   const effect = new ReactiveEffect(fn, opts?.scheduler);
   effect.run();
-  return effect.run.bind(effect);
+
+  const runner = effect.run.bind(effect);
+  runner.effect = effect;
+
+  return runner;
+}
+
+export function stop(runner: EffectRunner) {
+  const effect = runner.effect;
+  effect.stop();
 }
