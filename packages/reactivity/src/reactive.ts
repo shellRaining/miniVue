@@ -4,10 +4,21 @@ import { isObject } from "../../shared/src/general";
 const reactiveHandler = createHandler(false);
 const readonlyHandler = createHandler(true);
 
+enum ReactiveFlag {
+  IS_REACTIVE = "__v_isReactive",
+  IS_READONLY = "__v_isReadonly",
+}
+
 function createHandler(isReadonly: boolean) {
   return {
     get(target: object, key: PropertyKey) {
       const res = target[key];
+
+      if (key === ReactiveFlag.IS_READONLY) {
+        return isReadonly;
+      } else if (key === ReactiveFlag.IS_REACTIVE) {
+        return !isReadonly;
+      }
 
       if (isObject(res)) {
         // TODO: every time create a new Proxy will cost time?
@@ -19,7 +30,7 @@ function createHandler(isReadonly: boolean) {
     },
     set(target: object, key: PropertyKey, value: any) {
       if (isReadonly) {
-        console.warn('try to write in a readonly object');
+        console.warn("try to write in a readonly object");
         return true;
       }
       target[key] = value;
@@ -36,4 +47,12 @@ export function reactive<T extends object>(target: T): T {
 
 export function readonly<T extends object>(target: T): T {
   return new Proxy(target, readonlyHandler) as T;
+}
+
+export function isReactive(target: unknown) {
+  return isObject(target) && target[ReactiveFlag.IS_REACTIVE];
+}
+
+export function isReadonly(target: unknown) {
+  return isObject(target) && target[ReactiveFlag.IS_READONLY];
 }
