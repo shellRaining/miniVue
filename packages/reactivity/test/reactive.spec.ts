@@ -1,4 +1,4 @@
-import { isReactive, isReadonly, reactive, readonly } from "../src/reactive";
+import { isProxy, isReactive, isReadonly, reactive, readonly, shallowReadonly } from "../src/reactive";
 import { effect } from "../src/effect";
 
 describe("reactive", () => {
@@ -43,5 +43,22 @@ describe("reactive", () => {
     expect(isReadonly(ro)).toBeTruthy();
     expect(isReactive(r)).toBeFalsy();
     expect(isReadonly(r)).toBeFalsy();
+  });
+
+  it('should have shallowReadonly', () => {
+    const sro = shallowReadonly({ a: { b: 1 } })
+
+    sro.a.b = 2
+    expect(sro.a.b).toBe(2)
+    sro.a = { b: 3 }
+    expect(sro.a.b).toBe(2)
+  });
+
+  it('should have isProxy', () => {
+    const sro = shallowReadonly({ a: { b: 1 } })
+
+    expect(isProxy(sro)).toBeTruthy()
+    expect(isProxy(sro.a)).toBeFalsy()
+    expect(isProxy(sro.a.b)).toBeFalsy()
   });
 });
